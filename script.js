@@ -7,5 +7,9 @@ const reset = document.gerElementById("reset");
 
 plus.addEventListener("click", () => {
   number=number+1;
-  count.texrContent = number;
+  count.textContent = number;
+});
+minus.addEventListener("click", () =>{
+  number=number - 1<;
+  count.textContent = number;
 });
