@@ -3,7 +3,7 @@ let number = 0;
 const count = document.getElementById("count");
 const plus = document.getElementById("plus");
 const minus = document.getElementById("minus");
-const reset = document.gerElementById("reset");
+const reset = document.getElementById("reset");
 
 plus.addEventListener("click", () => {
   number=number + 1;
@@ -13,7 +13,7 @@ minus.addEventListener("click", () =>{
   number=number - 1;
   count.textContent = number;
 });
-reset.addEventLestener("click", () =>{
+reset.addEventListener("click", () =>{
   number=0;
   count.textContent = number;
 });
