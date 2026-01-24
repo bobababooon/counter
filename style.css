@@ -1,1 +1,17 @@
+body {
+  text-align: sentor;
+  font-family:sans-serif;
+}
 
+h1 {
+  font-size: 32px;
+}
+#count {
+  font-size: 48px;
+  marjin: 20px 0;
+}
+button{
+  font-size:20px;
+  padding:10px 20px;
+  margin:5px;
+}
