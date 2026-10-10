@@ -1,17 +1,771 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>counter</title>
-<link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-  <h1>counter</h1>  
-  <p  id="count">0</p>
-  <button id="plus">+</button>
-  <button id="minus">-</button>
-  <button id="reset">reset</button>
-  <script src="script.js"></script>
-    
-  </body>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123b2a">
+<title>野球成績計算ツール</title>
+
+<style>
+:root {
+  --green: #176b45;
+  --dark-green: #123b2a;
+  --bg: #f2f5f3;
+  --card: #ffffff;
+  --border: #dce5df;
+  --text: #1d2922;
+  --muted: #68776d;
+  --red: #c0392b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  background: var(--dark-green);
+  color: white;
+  padding: 22px 16px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+header p {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: #d4e8db;
+}
+
+main {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 14px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 0 0 14px;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+button,
+.file-label {
+  min-height: 44px;
+  padding: 10px 7px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: white;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+button:active,
+.file-label:active {
+  transform: scale(0.98);
+}
+
+button.primary,
+.file-label.primary {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+
+button.danger {
+  color: var(--red);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.stat {
+  background: #f5f8f6;
+  border: 1px solid #e3ebe5;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.stat-value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin-top: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+  margin-top: 12px;
+}
+
+.count-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 0;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.count-row span:last-child {
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.actions button,
+.file-label {
+  flex: 1;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.hint {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 12px 0 0;
+}
+
+.history {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.history li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.history li:last-child {
+  border-bottom: 0;
+}
+
+.history small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.history button {
+  min-height: 34px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+}
+
+.status {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 600px) {
+  .buttons {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .counts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>⚾ 野球成績計算ツール</h1>
+  <p>打席結果を入力して成績を自動計算</p>
+</header>
+
+<main>
+
+  <section class="card">
+    <h2>打席結果を入力</h2>
+
+    <div class="buttons">
+      <button data-result="1B">単打</button>
+      <button data-result="2B">二塁打</button>
+      <button data-result="3B">三塁打</button>
+      <button data-result="HR">本塁打</button>
+      <button data-result="BB">四球</button>
+      <button data-result="HBP">死球</button>
+      <button data-result="SF">犠牲フライ</button>
+      <button data-result="SH">犠牲バント</button>
+      <button data-result="K">三振</button>
+      <button data-result="OUT">凡打・アウト</button>
+      <button data-result="E">失策出塁</button>
+      <button data-result="FC">野選出塁</button>
+    </div>
+
+    <p class="hint">
+      結果をタップすると1打席分が記録されます。
+      失策・野選による出塁は安打に含まれません。
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>成績</h2>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">打率</div>
+        <div class="stat-value" id="avg">—</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">出塁率</div>
+        <div class="stat-value" id="obp">—</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">長打率</div>
+        <div class="stat-value" id="slg">—</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">OPS</div>
+        <div class="stat-value" id="ops">—</div>
+      </div>
+    </div>
+
+    <div class="counts" id="counts"></div>
+  </section>
+
+  <section class="card">
+    <h2>打席履歴</h2>
+
+    <ul class="history" id="history">
+      <li>まだ記録がありません。</li>
+    </ul>
+
+    <div class="actions">
+      <button id="undo">最後を取り消す</button>
+      <button id="reset" class="danger">全削除</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>CSVの保存・読み込み</h2>
+
+    <div class="actions">
+      <button class="primary" id="export">CSVを保存</button>
+
+      <label class="file-label primary" for="csvFile">
+        CSVを読み込む
+      </label>
+
+      <input
+        type="file"
+        id="csvFile"
+        accept=".csv,text/csv"
+      >
+    </div>
+
+    <p class="hint">
+      CSVを保存しておけば、後から読み込んで記録を復元できます。
+      読み込み時は現在の記録に追加せず、CSVの内容に置き換えます。
+      先に現在の記録をCSVで保存してください。
+    </p>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+</main>
+
+<script>
+"use strict";
+
+const names = {
+  "1B": "単打",
+  "2B": "二塁打",
+  "3B": "三塁打",
+  "HR": "本塁打",
+  "BB": "四球",
+  "HBP": "死球",
+  "SF": "犠牲フライ",
+  "SH": "犠牲バント",
+  "K": "三振",
+  "OUT": "凡打・アウト",
+  "E": "失策出塁",
+  "FC": "野選出塁"
+};
+
+const validResults = new Set(Object.keys(names));
+let records = [];
+
+document.querySelectorAll("[data-result]").forEach(button => {
+  button.addEventListener("click", () => {
+    records.push({
+      result: button.dataset.result,
+      time: new Date().toISOString()
+    });
+
+    showStatus("");
+    render();
+  });
+});
+
+function calculate() {
+  const c = {
+    PA: records.length,
+    AB: 0,
+    H: 0,
+    singles: 0,
+    doubles: 0,
+    triples: 0,
+    HR: 0,
+    BB: 0,
+    HBP: 0,
+    SF: 0,
+    SH: 0,
+    K: 0,
+    TB: 0,
+    E: 0,
+    FC: 0
+  };
+
+  for (const record of records) {
+    const r = record.result;
+
+    // 四球・死球・犠牲フライ・犠牲バントは打数に含めない
+    if (!["BB", "HBP", "SF", "SH"].includes(r)) {
+      c.AB++;
+    }
+
+    if (["1B", "2B", "3B", "HR"].includes(r)) {
+      c.H++;
+    }
+
+    switch (r) {
+      case "1B":
+        c.singles++;
+        c.TB += 1;
+        break;
+      case "2B":
+        c.doubles++;
+        c.TB += 2;
+        break;
+      case "3B":
+        c.triples++;
+        c.TB += 3;
+        break;
+      case "HR":
+        c.HR++;
+        c.TB += 4;
+        break;
+      case "BB":
+        c.BB++;
+        break;
+      case "HBP":
+        c.HBP++;
+        break;
+      case "SF":
+        c.SF++;
+        break;
+      case "SH":
+        c.SH++;
+        break;
+      case "K":
+        c.K++;
+        break;
+      case "E":
+        c.E++;
+        break;
+      case "FC":
+        c.FC++;
+        break;
+    }
+  }
+
+  const avg = c.AB ? c.H / c.AB : null;
+
+  // 出塁率 = (安打 + 四球 + 死球) / (打数 + 四球 + 死球 + 犠牲フライ)
+  const obpDen = c.AB + c.BB + c.HBP + c.SF;
+  const obp = obpDen
+    ? (c.H + c.BB + c.HBP) / obpDen
+    : null;
+
+  const slg = c.AB ? c.TB / c.AB : null;
+
+  const ops = obp !== null && slg !== null
+    ? obp + slg
+    : null;
+
+  return { c, avg, obp, slg, ops };
+}
+
+function formatRate(value) {
+  if (value === null) return "—";
+  return value.toFixed(3).replace(/^0\./, ".");
+}
+
+function render() {
+  const { c, avg, obp, slg, ops } = calculate();
+
+  document.getElementById("avg").textContent = formatRate(avg);
+  document.getElementById("obp").textContent = formatRate(obp);
+  document.getElementById("slg").textContent = formatRate(slg);
+  document.getElementById("ops").textContent =
+    ops === null ? "—" : ops.toFixed(3).replace(/^0\./, ".");
+
+  const items = [
+    ["打席数", c.PA],
+    ["打数", c.AB],
+    ["安打", c.H],
+    ["単打", c.singles],
+    ["二塁打", c.doubles],
+    ["三塁打", c.triples],
+    ["本塁打", c.HR],
+    ["四球", c.BB],
+    ["死球", c.HBP],
+    ["三振", c.K],
+    ["犠牲フライ", c.SF],
+    ["犠牲バント", c.SH],
+    ["失策出塁", c.E],
+    ["野選出塁", c.FC],
+    ["塁打", c.TB]
+  ];
+
+  const counts = document.getElementById("counts");
+  counts.replaceChildren();
+
+  for (const [label, value] of items) {
+    const row = document.createElement("div");
+    row.className = "count-row";
+
+    const left = document.createElement("span");
+    left.textContent = label;
+
+    const right = document.createElement("span");
+    right.textContent = value;
+
+    row.append(left, right);
+    counts.appendChild(row);
+  }
+
+  const history = document.getElementById("history");
+  history.replaceChildren();
+
+  if (records.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "まだ記録がありません。";
+    history.appendChild(li);
+    return;
+  }
+
+  records.forEach((record, index) => {
+    const li = document.createElement("li");
+    const info = document.createElement("div");
+    const title = document.createElement("strong");
+    const time = document.createElement("small");
+    const del = document.createElement("button");
+
+    title.textContent = `${index + 1}. ${names[record.result]}`;
+    time.textContent = formatTime(record.time);
+    del.textContent = "削除";
+    del.type = "button";
+
+    del.addEventListener("click", () => {
+      records.splice(index, 1);
+      render();
+    });
+
+    info.append(title, time);
+    li.append(info, del);
+    history.appendChild(li);
+  });
+
+  // 最新の打席を上に表示
+  history.querySelectorAll("li").forEach(li => {
+    history.prepend(li);
+  });
+}
+
+function formatTime(value) {
+  if (!value) return "日時なし";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  return date.toLocaleString("ja-JP");
+}
+
+function showStatus(message, isError = false) {
+  const status = document.getElementById("status");
+  status.textContent = message;
+  status.style.color = isError ? "#c0392b" : "#176b45";
+}
+
+document.getElementById("undo").addEventListener("click", () => {
+  if (records.length === 0) return;
+  records.pop();
+  render();
+  showStatus("最後の記録を取り消しました。");
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  if (!records.length) return;
+
+  if (confirm("すべての打席記録を削除しますか？")) {
+    records = [];
+    render();
+    showStatus("すべての記録を削除しました。");
+  }
+});
+
+// CSVの値を安全に囲む
+function csvEscape(value) {
+  return '"' + String(value ?? "").replace(/"/g, '""') + '"';
+}
+
+document.getElementById("export").addEventListener("click", () => {
+  if (records.length === 0) {
+    showStatus("保存する記録がありません。", true);
+    return;
+  }
+
+  const rows = [
+    ["打席番号", "結果コード", "結果", "記録日時"],
+    ...records.map((record, index) => [
+      index + 1,
+      record.result,
+      names[record.result],
+      record.time
+    ])
+  ];
+
+  const csv = "\uFEFF" + rows
+    .map(row => row.map(csvEscape).join(","))
+    .join("\r\n");
+
+  const blob = new Blob([csv], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = "野球打席記録.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+  showStatus("CSVを保存しました。");
+});
+
+// ダブルクォート・カンマ・改行を含むCSVを読み込む
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, "");
+
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+    } else {
+      if (ch === '"' && field.length === 0) {
+        inQuotes = true;
+      } else if (ch === ",") {
+        row.push(field);
+        field = "";
+      } else if (ch === "\n") {
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = "";
+      } else if (ch !== "\r") {
+        field += ch;
+      }
+    }
+  }
+
+  if (inQuotes) {
+    throw new Error("CSVの引用符が正しく閉じられていません。");
+  }
+
+  if (field.length > 0 || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  return rows.filter(r => r.some(v => v.trim() !== ""));
+}
+
+document.getElementById("csvFile").addEventListener("change", async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    // UTF-8のCSVを読み込み。Excel向けに保存したCSVにも対応しやすい。
+    const buffer = await file.arrayBuffer();
+    let text = new TextDecoder("utf-8").decode(buffer);
+
+    // UTF-8として不正な文字がある場合、Shift_JISを試す
+    if (text.includes("\uFFFD")) {
+      text = new TextDecoder("shift_jis").decode(buffer);
+    }
+
+    const rows = parseCSV(text);
+
+    if (rows.length < 2) {
+      throw new Error("CSVに読み込める打席記録がありません。");
+    }
+
+    const header = rows[0].map(v => v.trim());
+    const resultIndex = header.findIndex(v =>
+      ["結果コード", "result", "resultCode"].includes(v)
+    );
+    const nameIndex = header.findIndex(v =>
+      ["結果", "結果名", "打席結果"].includes(v)
+    );
+    const timeIndex = header.findIndex(v =>
+      ["記録日時", "日時", "time"].includes(v)
+    );
+
+    if (resultIndex === -1 && nameIndex === -1) {
+      throw new Error(
+        "CSVに「結果コード」または「結果」列がありません。"
+      );
+    }
+
+    const imported = [];
+
+    for (let i = 1; i < rows.length; i++) {
+      const values = rows[i];
+
+      let result = resultIndex >= 0
+        ? (values[resultIndex] || "").trim()
+        : "";
+
+      // 結果コードがなければ、日本語の結果名から判定
+      if (!validResults.has(result) && nameIndex >= 0) {
+        const resultName = (values[nameIndex] || "").trim();
+        const found = Object.entries(names).find(
+          ([code, name]) => name === resultName || code === resultName
+        );
+        if (found) result = found[0];
+      }
+
+      if (!validResults.has(result)) {
+        throw new Error(
+          `${i + 1}行目の打席結果を認識できません: ${result || "空欄"}`
+        );
+      }
+
+      const time = timeIndex >= 0
+        ? (values[timeIndex] || "").trim()
+        : "";
+
+      imported.push({
+        result,
+        time: time || new Date().toISOString()
+      });
+    }
+
+    if (imported.length === 0) {
+      throw new Error("読み込める打席記録がありません。");
+    }
+
+    if (!confirm(
+      `${imported.length}打席の記録を読み込みます。\n` +
+      "現在の記録は置き換えられます。続けますか？"
+    )) {
+      return;
+    }
+
+    records = imported;
+    render();
+    showStatus(`${records.length}打席の記録を読み込みました。`);
+
+  } catch (error) {
+    showStatus(error.message || "CSVの読み込みに失敗しました。", true);
+  } finally {
+    event.target.value = "";
+  }
+});
+
+render();
+</script>
+
+</body>
 </html>
